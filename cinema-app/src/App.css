@@ -1,0 +1,506 @@
+.ticket-counter {
+  --bg: #FBFAF7;
+  --panel: #FFFFFF;
+  --ink: #1C1B19;
+  --ink-soft: #6B6660;
+  --line: #E6E2DA;
+  --accent: #A9761F;
+  --danger: #A3352A;
+
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  .ticket-counter:not([data-theme="light"]) {
+    --bg: #171614;
+    --panel: #1F1E1B;
+    --ink: #EDEAE4;
+    --ink-soft: #948E84;
+    --line: #34322D;
+    --accent: #D6A94E;
+    --danger: #E39184;
+  }
+}
+
+.ticket-counter[data-theme="dark"] {
+  --bg: #171614;
+  --panel: #1F1E1B;
+  --ink: #EDEAE4;
+  --ink-soft: #948E84;
+  --line: #34322D;
+  --accent: #D6A94E;
+  --danger: #E39184;
+}
+
+.ticket-counter * {
+  box-sizing: border-box;
+}
+
+.ticket-counter .mono {
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+}
+
+.ticket-counter {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  min-height: 100vh;
+}
+
+.tc-top {
+  margin-bottom: 32px;
+}
+
+.tc-top h1 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.tc-top p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.tc-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .tc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tc-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 22px;
+}
+
+.tc-card + .tc-card {
+  margin-top: 20px;
+}
+
+.tc-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+  letter-spacing: 0.02em;
+}
+
+.tc-tier-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.tc-tier-row:first-of-type {
+  border-top: none;
+  padding-top: 4px;
+}
+
+.tc-tier-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tc-tier-name {
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+.tc-tier-meta {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.tc-tier-meta.sold-out {
+  color: var(--danger);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.stepper button {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.stepper button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.stepper button:not(:disabled):hover {
+  border-color: var(--accent);
+}
+
+.stepper .qty {
+  width: 20px;
+  text-align: center;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-offer-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.tc-offer-row:first-of-type {
+  border-top: none;
+  padding-top: 4px;
+}
+
+.tc-offer-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.tc-offer-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tc-offer-sub {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.switch {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: none;
+  background: var(--line);
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.switch[data-on="true"] {
+  background: var(--accent);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--panel);
+  transition: transform 0.15s ease;
+}
+
+.switch[data-on="true"]::after {
+  transform: translateX(14px);
+}
+
+.tc-field-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tc-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tc-field label {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.tc-field input {
+  font-family: inherit;
+  font-size: 13.5px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+}
+
+.tc-field input:focus-visible,
+.stepper button:focus-visible,
+.switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.tc-fee-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.tc-fee-row .tc-field {
+  max-width: 120px;
+}
+
+.tc-receipt {
+  position: sticky;
+  top: 24px;
+}
+
+.tc-receipt-empty {
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.tc-receipt-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding: 5px 0;
+}
+
+.tc-receipt-line.sub {
+  color: var(--ink-soft);
+  padding-left: 10px;
+  font-size: 12.5px;
+}
+
+.tc-receipt-line.discount {
+  color: var(--accent);
+}
+
+.tc-receipt-rule {
+  border-top: 1px solid var(--line);
+  margin: 10px 0;
+}
+
+.tc-receipt-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1.5px solid var(--ink);
+}
+
+.tc-receipt-total .label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.tc-receipt-total .amount {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+fieldset {
+  border: none;
+  margin-bottom: 24px;
+  padding: 0;
+}
+
+legend {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #333;
+  margin-bottom: 12px;
+  display: block;
+  padding: 0;
+}
+
+.seat-input {
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: 12px;
+  align-items: center;
+}
+
+.seat-input label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.available {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  color: #999;
+  margin-top: 2px;
+}
+
+input[type="number"],
+input[type="checkbox"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+input[type="number"] {
+  width: 100%;
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.checkbox-group label {
+  margin: 0;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+}
+
+.offer-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-left: 24px;
+  margin-bottom: 16px;
+}
+
+.offer-inputs input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.primary {
+  background: #333;
+  color: white;
+}
+
+.primary:hover {
+  background: #111;
+}
+
+.primary:active {
+  transform: scale(0.98);
+}
+
+.error {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #c33;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.receipt {
+  background: #f8f8f8;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #333;
+  max-height: 500px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.empty {
+  color: #999;
+  text-align: center;
+  padding: 40px 16px;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+
+  .form-section,
+  .receipt-section {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .seat-input {
+    grid-template-columns: 1fr 60px;
+  }
+}
