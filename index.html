@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinema Booking Engine</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .section {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 28px;
+    }
+
+    h2 {
+      color: #667eea;
+      font-size: 18px;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input[type="number"],
+    select,
+    input[type="checkbox"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 6px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .checkbox-group label {
+      margin-bottom: 0;
+      font-weight: normal;
+      flex: 1;
+    }
+
+    .seat-tier {
+      background: #f9f9f9;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      border: 1px solid #eee;
+    }
+
+    .seat-tier-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .seat-tier input {
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .offer-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .offer-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+      width: 100%;
+    }
+
+    button:hover {
+      background: #764ba2;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .receipt {
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #333;
+      max-height: 600px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .receipt.empty {
+      color: #999;
+      text-align: center;
+      padding: 40px 16px;
+    }
+
+    .error {
+      background: #fee;
+      border: 1px solid #f99;
+      color: #c33;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .success {
+      background: #efe;
+      border: 1px solid #9f9;
+      color: #3c3;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .info-text {
+      color: #666;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-subtitle {
+      color: #666;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- LEFT: Booking Form -->
+    <div class="section">
+      <h1>🎬 Cinema Booking</h1>
+      <p class="section-subtitle">Friday Night Multiplex</p>
+
+      <div id="error-box"></div>
+
+      <h2>Select Seats</h2>
+      <div class="seat-tier-header">
+        <div>Tier</div>
+        <div>₹ Price</div>
+        <div>Qty</div>
+      </div>
+
+      <div id="seats-container"></div>
+
+      <h2 style="margin-top: 20px;">Offers</h2>
+
+      <div class="offer-row">
+        <div class="checkbox-group">
+          <input type="checkbox" id="flat-offer" />
+          <label for="flat-offer">Festival Flat Discount</label>
+        </div>
+      </div>
+      <div id="flat-offer-inputs" style="display: none;" class="offer-inputs">
+        <input type="number" id="flat-amount" placeholder="₹ Amount" min="0" value="50" />
+        <input type="number" id="flat-min" placeholder="Min subtotal ₹" min="0" value="300" />
+      </div>
+
+      <div class="offer-row">
+        <div class="checkbox-group">
+          <input type="checkbox" id="percent-offer" />
+          <label for="percent-offer">Member Percentage Discount</label>
+        </div>
+      </div>
+      <div id="percent-offer-inputs" style="display: none;" class="offer-inputs">
+        <input type="number" id="percent-rate" placeholder="% Rate" min="0" max="100" value="10" />
+        <input type="number" id="percent-cap" placeholder="Cap ₹" min="0" value="100" />
+      </div>
+
+      <h2 style="margin-top: 20px;">Other Settings</h2>
+      <div class="form-group">
+        <label for="conv-fee">Convenience Fee per Ticket (₹)</label>
+        <input type="number" id="conv-fee" value="30" min="0" step="0.50" />
+      </div>
+
+      <button onclick="calculateBooking()">💳 Calculate Booking</button>
+    </div>
+
+    <!-- RIGHT: Receipt -->
+    <div class="section">
+      <h2>Receipt</h2>
+      <div id="receipt" class="receipt empty">
+        Select seats and click "Calculate Booking" to see the receipt.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Pricing Engine (Browser version)
+    const PAISA_PER_RUPEE = 100;
+
+    function toPaisa(rupees) {
+      return Math.round(rupees * PAISA_PER_RUPEE);
+    }
+
+    function formatMoney(paisa) {
+      const sign = paisa < 0 ? '-' : '';
+      const abs = Math.round(Math.abs(paisa));
+      const rupees = Math.floor(abs / 100);
+      const paise = abs % 100;
+      return `${sign}₹${rupees.toLocaleString('en-IN')}.${String(paise).padStart(2, '0')}`;
+    }
+
+    function roundHalfUp(x) {
+      return Math.floor(x + 0.5);
+    }
+
+    const DEFAULT_GST_SLABS = [
+      { uptoPaisa: 10000, rate: 0.12 },
+      { uptoPaisa: Infinity, rate: 0.18 },
+    ];
+
+    function gstRateForUnitPrice(unitPricePaisa, slabs) {
+      for (const slab of slabs) {
+        if (unitPricePaisa <= slab.uptoPaisa) return slab.rate;
+      }
+      return slabs[slabs.length - 1].rate;
+    }
+
+    function distributeProRata(lines, totalDiscountPaisa) {
+      if (totalDiscountPaisa === 0) {
+        return lines.map((l) => ({ ...l, discountPaisa: 0, discountedSubtotalPaisa: l.subtotalPaisa }));
+      }
+      const subtotalPaisa = lines.reduce((s, l) => s + l.subtotalPaisa, 0);
+      const shares = lines.map((l) => {
+        const exact = (totalDiscountPaisa * l.subtotalPaisa) / subtotalPaisa;
+        const floor = Math.floor(exact);
+        return { line: l, floor, remainder: exact - floor };
+      });
+      const allocated = shares.reduce((s, x) => s + x.floor, 0);
+      const leftover = totalDiscountPaisa - allocated;
+      shares.sort((a, b) => b.remainder - a.remainder);
+      for (let i = 0; i < leftover; i++) {
+        shares[i % shares.length].floor += 1;
+      }
+      return shares.map(({ line, floor }) => ({
+        ...line,
+        discountPaisa: floor,
+        discountedSubtotalPaisa: line.subtotalPaisa - floor,
+      }));
+    }
+
+    function priceBooking(tiers, requestedSeats, { offers = [], convenienceFeePaisa = 3000 } = {}) {
+      const lines = [];
+      for (const { tierName, quantity } of requestedSeats) {
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+          throw new Error(`Quantity for ${tierName} must be positive`);
+        }
+        const tier = tiers.find((t) => t.name === tierName);
+        if (!tier) throw new Error(`Unknown tier: ${tierName}`);
+        if (tier.available <= 0) throw new Error(`${tier.name} is sold out`);
+        if (quantity > tier.available) throw new Error(`Only ${tier.available} ${tier.name} seat(s) left`);
+
+        lines.push({
+          tierName: tier.name,
+          quantity,
+          unitPricePaisa: tier.pricePaisa,
+          subtotalPaisa: tier.pricePaisa * quantity,
+        });
+      }
+      if (lines.length === 0) throw new Error('No seats selected');
+
+      const subtotalPaisa = lines.reduce((s, l) => s + l.subtotalPaisa, 0);
+      let running = subtotalPaisa;
+      const discountEntries = [];
+
+      for (const offer of offers) {
+        let amount = 0;
+        if (offer.kind === 'FLAT') {
+          if (subtotalPaisa >= offer.minSubtotalPaisa) {
+            amount = Math.min(offer.amountPaisa, running);
+          }
+        } else if (offer.kind === 'PERCENT') {
+          const raw = roundHalfUp((running * offer.percent) / 100);
+          amount = Math.min(raw, offer.capPaisa, running);
+        }
+        if (amount > 0) {
+          discountEntries.push({ label: offer.label, amountPaisa: amount });
+          running -= amount;
+        }
+      }
+
+      const totalDiscountPaisa = subtotalPaisa - running;
+      const discountedSubtotalPaisa = running;
+      const ticketLines = distributeProRata(lines, totalDiscountPaisa);
+      const totalQty = lines.reduce((s, l) => s + l.quantity, 0);
+      const feeSubtotalPaisa = convenienceFeePaisa * totalQty;
+
+      let ticketGstPaisa = 0;
+      for (const line of ticketLines) {
+        const unitDiscountedPrice = Math.round(line.discountedSubtotalPaisa / line.quantity);
+        line.gstRate = gstRateForUnitPrice(unitDiscountedPrice, DEFAULT_GST_SLABS);
+        line.gstPaisa = roundHalfUp(line.discountedSubtotalPaisa * line.gstRate);
+        ticketGstPaisa += line.gstPaisa;
+      }
+      const feeGstPaisa = roundHalfUp(feeSubtotalPaisa * 0.18);
+
+      return {
+        lines: ticketLines,
+        subtotalPaisa,
+        discounts: discountEntries,
+        totalDiscountPaisa,
+        discountedSubtotalPaisa,
+        convenienceFee: {
+          quantity: totalQty,
+          perTicketPaisa: convenienceFeePaisa,
+          subtotalPaisa: feeSubtotalPaisa,
+          gstRate: 0.18,
+          gstPaisa: feeGstPaisa,
+        },
+        ticketGstPaisa,
+        grandTotalPaisa: discountedSubtotalPaisa + feeSubtotalPaisa + ticketGstPaisa + feeGstPaisa,
+      };
+    }
+
+    function printReceipt(result) {
+      const W = 46;
+      const row = (label, value) => label.padEnd(W - 12) + value.padStart(12);
+      const out = [];
+      out.push('-'.repeat(W));
+      out.push('BOOKING RECEIPT');
+      out.push('-'.repeat(W));
+      for (const l of result.lines) {
+        out.push(row(`${l.tierName} x${l.quantity} @ ${formatMoney(l.unitPricePaisa)}`, formatMoney(l.subtotalPaisa)));
+      }
+      out.push('-'.repeat(W));
+      out.push(row('Subtotal', formatMoney(result.subtotalPaisa)));
+      for (const d of result.discounts) {
+        out.push(row(`  ${d.label}`, '-' + formatMoney(d.amountPaisa)));
+      }
+      out.push(row('Discounted subtotal', formatMoney(result.discountedSubtotalPaisa)));
+      out.push(row(
+        `Convenience fee x${result.convenienceFee.quantity} @ ${formatMoney(result.convenienceFee.perTicketPaisa)}`,
+        formatMoney(result.convenienceFee.subtotalPaisa),
+      ));
+      for (const l of result.lines) {
+        out.push(row(`  GST on ${l.tierName} @ ${(l.gstRate * 100).toFixed(0)}%`, formatMoney(l.gstPaisa)));
+      }
+      out.push(row(`  GST on convenience fee @ 18%`, formatMoney(result.convenienceFee.gstPaisa)));
+      out.push('='.repeat(W));
+      out.push(row('GRAND TOTAL', formatMoney(result.grandTotalPaisa)));
+      out.push('='.repeat(W));
+      return out.join('\n');
+    }
+
+    // Initialize UI
+    const TIERS = [
+      { name: 'Silver', pricePaisa: toPaisa(150), totalSeats: 100, seatsSold: 40 },
+      { name: 'Gold', pricePaisa: toPaisa(250), totalSeats: 80, seatsSold: 79 },
+      { name: 'Recliner', pricePaisa: toPaisa(450), totalSeats: 20, seatsSold: 20 },
+    ];
+
+    TIERS.forEach((tier) => {
+      tier.available = tier.totalSeats - tier.seatsSold;
+    });
+
+    function initSeats() {
+      const container = document.getElementById('seats-container');
+      container.innerHTML = TIERS.map(
+        (tier) => `
+        <div class="seat-tier">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div style="font-weight: 600;">${tier.name}</div>
+            <div>${formatMoney(tier.pricePaisa)} (${tier.available} left)</div>
+            <input type="number" class="tier-qty" data-tier="${tier.name}" value="0" min="0" max="${tier.available}" />
+          </div>
+        </div>
+      `,
+      ).join('');
+    }
+
+    document.getElementById('flat-offer').addEventListener('change', (e) => {
+      document.getElementById('flat-offer-inputs').style.display = e.target.checked ? 'grid' : 'none';
+    });
+
+    document.getElementById('percent-offer').addEventListener('change', (e) => {
+      document.getElementById('percent-offer-inputs').style.display = e.target.checked ? 'grid' : 'none';
+    });
+
+    function calculateBooking() {
+      const errorBox = document.getElementById('error-box');
+      const receiptBox = document.getElementById('receipt');
+      errorBox.innerHTML = '';
+
+      try {
+        const requested = [];
+        document.querySelectorAll('.tier-qty').forEach((input) => {
+          const qty = parseInt(input.value) || 0;
+          if (qty > 0) {
+            requested.push({ tierName: input.dataset.tier, quantity: qty });
+          }
+        });
+
+        const offers = [];
+        if (document.getElementById('flat-offer').checked) {
+          offers.push({
+            kind: 'FLAT',
+            amountPaisa: toPaisa(parseFloat(document.getElementById('flat-amount').value) || 0),
+            minSubtotalPaisa: toPaisa(parseFloat(document.getElementById('flat-min').value) || 0),
+            label: 'Festival Discount',
+          });
+        }
+        if (document.getElementById('percent-offer').checked) {
+          offers.push({
+            kind: 'PERCENT',
+            percent: parseFloat(document.getElementById('percent-rate').value) || 0,
+            capPaisa: toPaisa(parseFloat(document.getElementById('percent-cap').value) || 0),
+            label: 'Member Discount',
+          });
+        }
+
+        const result = priceBooking(TIERS, requested, {
+          offers,
+          convenienceFeePaisa: toPaisa(parseFloat(document.getElementById('conv-fee').value) || 0),
+        });
+
+        receiptBox.classList.remove('empty');
+        receiptBox.textContent = printReceipt(result);
+      } catch (e) {
+        errorBox.innerHTML = `<div class="error">⚠️ ${e.message}</div>`;
+        receiptBox.classList.add('empty');
+        receiptBox.textContent = 'Error — see above.';
+      }
+    }
+
+    initSeats();
+  </script>
+</body>
+</html>
