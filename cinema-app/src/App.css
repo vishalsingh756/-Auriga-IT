@@ -100,9 +100,10 @@
 }
 
 .tc-tier-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) auto auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 18px;
   padding: 12px 0;
   border-top: 1px solid var(--line);
 }
@@ -131,6 +132,32 @@
 
 .tc-tier-meta.sold-out {
   color: var(--danger);
+}
+
+.tc-tier-editor {
+  display: grid;
+  grid-template-columns: repeat(3, 68px);
+  gap: 8px;
+}
+
+.tc-tier-editor label {
+  display: grid;
+  gap: 4px;
+  color: var(--ink-soft);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tc-tier-editor input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 13px 'IBM Plex Mono', 'SFMono-Regular', monospace;
 }
 
 .stepper {
@@ -263,6 +290,7 @@
 }
 
 .tc-field input:focus-visible,
+.tc-tier-editor input:focus-visible,
 .stepper button:focus-visible,
 .switch:focus-visible {
   outline: 2px solid var(--accent);
@@ -502,5 +530,23 @@ button {
 
   .seat-input {
     grid-template-columns: 1fr 60px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tc-tier-row {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+  }
+
+  .tc-tier-editor {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tc-tier-row .stepper {
+    grid-column: 2;
+    grid-row: 1;
   }
 }

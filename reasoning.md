@@ -1,69 +1,25 @@
 # Reasoning
 
-This document contains reasoning and decision-making processes for the cinema pricing engine project.
+## Core decisions
 
-## Key Design Decisions
+- **Integer paisa:** all internal amounts use integer paisa, preventing rounding
+  drift in discounts, GST, and totals.
+- **Separate domain objects:** `SeatTier` owns price and availability while
+  `Show` owns tier lookup and booking validation.
+- **Composable discounts:** flat and percentage offers share one model with
+  minimum-subtotal and percentage-cap constraints.
+- **Explicit failures:** `PricingError` makes invalid tiers, quantities, and
+  unavailable seats distinguishable from programming errors.
 
-### 1. Paisa-Based Internal Representation
-**Decision:** All monetary values are stored internally as integer paisa (1 paisa = 0.01 rupees) instead of decimal rupees.
-**Rationale:** 
-- Avoids floating-point precision errors that could cause money calculation discrepancies
-- Ensures cent-accurate billing (important for financial transactions)
-- Allows for strict integer arithmetic without rounding errors during intermediate calculations
+## Calculation order
 
-### 2. Seat Tier Class Architecture
-**Decision:** Created separate `SeatTier` class to encapsulate tier properties and `Show` class to manage collections of tiers.
-**Rationale:**
-- Separates concerns: tier pricing/availability logic vs. show management
-- Makes it easy to query tier availability (`available`, `isSoldOut` getters)
-- Allows shows to have multiple tiers with different prices (premium, standard, economy)
-- Uses Map for O(1) tier lookups by name
+1. Validate each requested tier and quantity against show availability.
+2. Calculate the ticket subtotal.
+3. Apply eligible discounts in the supplied order to the running subtotal.
+4. Distribute the discount across ticket lines so mixed tiers remain itemised.
+5. Calculate ticket GST by the discounted per-ticket price: 12% up to ₹100 and
+   18% above ₹100.
+6. Add the per-ticket convenience fee and its separate 18% GST.
 
-### 3. Discount Abstraction
-**Decision:** Implemented discount objects with `kind`, `amountPaisa`/`percent`, and optional constraints (`minSubtotalPaisa`, `capPaisa`).
-**Rationale:**
-- Supports both flat discounts (e.g., "₹50 off") and percentage discounts (e.g., "10% off")
-- Allows stacking multiple discounts with minimum subtotal thresholds
-- Cap on percentage discounts prevents excessive discounting on large orders
-- Flexible labeling for receipt display
-
-### 4. Custom Error Handling
-**Decision:** Created `PricingError` class extending Error for domain-specific exceptions.
-**Rationale:**
-- Distinguishes pricing logic errors from other runtime errors
-- Makes error handling more explicit and testable
-- Improves debugging by clearly identifying invalid seat tiers or invalid operations
-
-## Implementation Notes
-
-### GST Slab Calculation
-- India uses **tiered GST rates** based on price: 12% for items ≤₹100, 18% for higher-priced items
-- Implemented `gstRateForUnitPrice()` to dynamically determine the correct GST rate
-- GST is calculated per-tier line based on the discounted unit price
-- This reflects realistic Indian cinema billing practices
-
-### Discount Application Strategy
-- Discounts are applied **in order** with a "running total" approach
-- Each discount operates on the remaining balance, not the original subtotal
-- This allows for **stacked discounts** with constraints (e.g., "only apply if cart > ₹500")
-- `minSubtotalPaisa` threshold ensures discounts only apply when cart is large enough
-- `capPaisa` on percentage discounts prevents excessive discounting
-
-### Pro-Rata Distribution
-- When applying discounts, they're distributed **proportionally** across ticket tiers
-- This ensures fair discount distribution when buying mixed-tier seats
-- Avoids anomalies like discounting premium seats more than economy seats
-
-### Convenience Fee Handling
-- Charged **per-ticket**, not per-order (realistic for booking platforms)
-- Has its own **separate GST calculation** at a fixed rate (typically 18% in India)
-- Kept separate from ticket GST calculations for clear itemization
-
-### Receipt Itemization
-- The final receipt includes:
-  - Line items for each seat tier (quantity × unit price)
-  - Applied discounts with labels
-  - Ticket GST (per-tier)
-  - Convenience fee with its own GST
-  - Grand total
-- This granular breakdown is useful for dispute resolution and tax reporting
+This order keeps the receipt auditable: every adjustment is visible and the
+grand total is derived from integer arithmetic.

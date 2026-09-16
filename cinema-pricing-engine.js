@@ -10,6 +10,62 @@ function toPaisa(rupees) {
   return Math.round(rupees * PAISA_PER_RUPEE);
 }
 
+function parsePricePaisa(value) {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value < 0) return null;
+    return toPaisa(value);
+  }
+  if (typeof value !== 'string') return null;
+  const text = value.trim().replace(/\u20B9|Rs\.?|INR/gi, '').trim();
+  if (!/^\d+(?:,\d+)*(?:\.\d{1,2})?$/.test(text)) return null;
+  const [rupees, paise = ''] = text.replace(/,/g, '').split('.');
+  return (Number(rupees) * PAISA_PER_RUPEE) + Number(paise.padEnd(2, '0'));
+}
+
+function importSeatTiers(rows) {
+  if (!Array.isArray(rows)) throw new TypeError('Seat price list must be an array');
+
+  const imported = [];
+  const deduplicated = [];
+  const rejected = [];
+  const seen = new Set();
+
+  rows.forEach((row, index) => {
+    const source = Array.isArray(row) ? { name: row[0], price: row[1] } : row || {};
+    const name = typeof source.name === 'string' ? source.name.trim() : '';
+    const pricePaisa = parsePricePaisa(source.price);
+    const rowNumber = index + 1;
+    if (!name) {
+      rejected.push({ row: rowNumber, input: row, reason: 'Seat class name is blank' });
+      return;
+    }
+    if (pricePaisa === null) {
+      rejected.push({ row: rowNumber, input: row, reason: 'Price must be a non-negative rupee amount' });
+      return;
+    }
+
+    const key = name.toLocaleLowerCase('en-IN');
+    if (seen.has(key)) {
+      deduplicated.push({ row: rowNumber, name, pricePaisa, reason: 'Duplicate seat class name' });
+      return;
+    }
+    seen.add(key);
+    imported.push({ row: rowNumber, name, pricePaisa });
+  });
+
+  return {
+    tiers: imported.map(({ name, pricePaisa }) => new SeatTier(name, pricePaisa, 0)),
+    imported,
+    deduplicated,
+    rejected,
+    summary: {
+      imported: imported.length,
+      deduplicated: deduplicated.length,
+      rejected: rejected.length,
+    },
+  };
+}
+
 function formatMoney(paisa) {
   const sign = paisa < 0 ? '-' : '';
   const absolute = Math.round(Math.abs(paisa));
@@ -219,5 +275,6 @@ module.exports = {
   printReceipt,
   formatMoney,
   toPaisa,
+  importSeatTiers,
   DEFAULT_GST_SLABS,
 };

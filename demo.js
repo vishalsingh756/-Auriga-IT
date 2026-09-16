@@ -3,7 +3,22 @@
 const {
   SeatTier, Show, priceBooking, printReceipt,
   flatDiscount, percentDiscount, toPaisa, PricingError,
+  importSeatTiers,
 } = require('./cinema-pricing-engine');
+
+const importedPriceList = importSeatTiers([
+  { name: 'Gold', price: '2,50.00' },
+  { name: ' gold ', price: '999' },
+  { name: 'Silver', price: '150.50' },
+  { name: 'Recliner', price: '-450' },
+  { name: '', price: '200' },
+  ['Balcony', 'INR 1,200'],
+]);
+
+console.log('=== Imported seat-class price list ===');
+console.log('Imported:', importedPriceList.imported);
+console.log('De-duplicated:', importedPriceList.deduplicated);
+console.log('Rejected:', importedPriceList.rejected);
 
 const show = new Show([
   new SeatTier('Silver', toPaisa(150), 100, 40),

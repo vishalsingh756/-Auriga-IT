@@ -3,7 +3,31 @@
 const assert = require('node:assert/strict');
 const {
   SeatTier, Show, PricingError, flatDiscount, percentDiscount, priceBooking, toPaisa,
+  importSeatTiers,
 } = require('../cinema-pricing-engine');
+
+const importedPriceList = importSeatTiers([
+  { name: ' Gold ', price: '₹2,50.00' },
+  { name: 'gold', price: '999' },
+  { name: 'Silver', price: '1,50.5' },
+  { name: 'Recliner', price: '' },
+  { name: 'Balcony', price: '-100' },
+  { name: '', price: '200' },
+  ['Box', 'INR 1,200'],
+]);
+
+assert.deepEqual(importedPriceList.summary, { imported: 3, deduplicated: 1, rejected: 3 });
+assert.deepEqual(importedPriceList.tiers.map((tier) => [tier.name, tier.pricePaisa]), [
+  ['Gold', 25000],
+  ['Silver', 15050],
+  ['Box', 120000],
+]);
+assert.equal(importedPriceList.deduplicated[0].name, 'gold');
+assert.deepEqual(importedPriceList.rejected.map((entry) => entry.reason), [
+  'Price must be a non-negative rupee amount',
+  'Price must be a non-negative rupee amount',
+  'Seat class name is blank',
+]);
 
 const show = new Show([
   new SeatTier('Silver', toPaisa(150), 100, 40),

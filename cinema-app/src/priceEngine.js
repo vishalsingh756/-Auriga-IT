@@ -21,7 +21,7 @@ function roundHalfUp(x) {
   return Math.floor(x + 0.5);
 }
 
-const DEFAULT_GST_SLABS = [
+export const DEFAULT_GST_SLABS = [
   { uptoPaisa: 10000, rate: 0.12 },
   { uptoPaisa: Infinity, rate: 0.18 },
 ];
@@ -56,25 +56,30 @@ function distributeProRata(lines, totalDiscountPaisa) {
   }));
 }
 
-export function priceBooking(tiers, requestedSeats, { offers = [], convenienceFeePaisa = 3000 } = {}) {
+export function priceBooking(tiers, requestedSeats, opts = {}) {
+  const {
+    offers = [],
+    convenienceFeePaisa = 0,
+    convenienceFeeGstRate = 0.18,
+    gstSlabs = DEFAULT_GST_SLABS,
+  } = opts;
   const lines = [];
   for (const { tierName, quantity } of requestedSeats) {
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      throw new Error(`Quantity for ${tierName} must be positive`);
-    }
+    if (quantity <= 0) continue;
     const tier = tiers.find((t) => t.name === tierName);
-    if (!tier) throw new Error(`Unknown tier: ${tierName}`);
-    if (tier.available <= 0) throw new Error(`${tier.name} is sold out`);
-    if (quantity > tier.available) throw new Error(`Only ${tier.available} ${tier.name} seat(s) left`);
+    if (!tier) continue;
+    const available = tier.available ?? tier.totalSeats - tier.seatsSold;
+    const qty = Math.min(quantity, available);
+    if (qty <= 0) continue;
 
     lines.push({
       tierName: tier.name,
-      quantity,
+      quantity: qty,
       unitPricePaisa: tier.pricePaisa,
-      subtotalPaisa: tier.pricePaisa * quantity,
+      subtotalPaisa: tier.pricePaisa * qty,
     });
   }
-  if (lines.length === 0) throw new Error('No seats selected');
+  if (lines.length === 0) return null;
 
   const subtotalPaisa = lines.reduce((s, l) => s + l.subtotalPaisa, 0);
   let running = subtotalPaisa;
@@ -105,11 +110,11 @@ export function priceBooking(tiers, requestedSeats, { offers = [], convenienceFe
   let ticketGstPaisa = 0;
   for (const line of ticketLines) {
     const unitDiscountedPrice = Math.round(line.discountedSubtotalPaisa / line.quantity);
-    line.gstRate = gstRateForUnitPrice(unitDiscountedPrice, DEFAULT_GST_SLABS);
+    line.gstRate = gstRateForUnitPrice(unitDiscountedPrice, gstSlabs);
     line.gstPaisa = roundHalfUp(line.discountedSubtotalPaisa * line.gstRate);
     ticketGstPaisa += line.gstPaisa;
   }
-  const feeGstPaisa = roundHalfUp(feeSubtotalPaisa * 0.18);
+  const feeGstPaisa = roundHalfUp(feeSubtotalPaisa * convenienceFeeGstRate);
 
   return {
     lines: ticketLines,
@@ -121,7 +126,7 @@ export function priceBooking(tiers, requestedSeats, { offers = [], convenienceFe
       quantity: totalQty,
       perTicketPaisa: convenienceFeePaisa,
       subtotalPaisa: feeSubtotalPaisa,
-      gstRate: 0.18,
+      gstRate: convenienceFeeGstRate,
       gstPaisa: feeGstPaisa,
     },
     ticketGstPaisa,

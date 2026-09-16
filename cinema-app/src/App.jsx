@@ -35,12 +35,24 @@ function Switch({ on, onToggle, label }) {
 }
 
 export default function TicketCounter({ tiers = INITIAL_TIERS }) {
+  const [tierConfig, setTierConfig] = useState(tiers);
   const [selections, setSelections] = useState(
     Object.fromEntries(tiers.map((t) => [t.name, 0])),
   );
   const [festival, setFestival] = useState({ enabled: true, amount: 50, min: 300 });
   const [member, setMember] = useState({ enabled: true, percent: 10, cap: 100 });
   const [fee, setFee] = useState(30);
+
+  const updateTier = (tierName, field, value) => {
+    setTierConfig((current) => current.map((tier) => {
+      if (tier.name !== tierName) return tier;
+      const nextValue = Math.max(0, Number(value) || 0);
+      const nextTier = { ...tier, [field]: nextValue };
+      if (field === 'totalSeats') nextTier.seatsSold = Math.min(nextTier.seatsSold, nextValue);
+      if (field === 'seatsSold') nextTier.seatsSold = Math.min(nextValue, nextTier.totalSeats);
+      return nextTier;
+    }));
+  };
 
   const requestedSeats = Object.entries(selections)
     .filter(([, qty]) => qty > 0)
@@ -66,7 +78,7 @@ export default function TicketCounter({ tiers = INITIAL_TIERS }) {
 
   const result = useMemo(() => {
     if (requestedSeats.length === 0) return null;
-    const tiersWithPaisa = tiers.map((t) => ({
+    const tiersWithPaisa = tierConfig.map((t) => ({
       ...t,
       pricePaisa: toPaisa(t.price),
       available: t.totalSeats - t.seatsSold,
@@ -76,7 +88,7 @@ export default function TicketCounter({ tiers = INITIAL_TIERS }) {
       convenienceFeePaisa: toPaisa(Number(fee) || 0),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(selections), JSON.stringify(festival), JSON.stringify(member), fee, tiers]);
+  }, [JSON.stringify(selections), JSON.stringify(festival), JSON.stringify(member), fee, tierConfig]);
 
   return (
     <div className="ticket-counter">
@@ -89,14 +101,14 @@ export default function TicketCounter({ tiers = INITIAL_TIERS }) {
         <div>
           <section className="tc-card">
             <h2 className="tc-section-title">SEATS</h2>
-            {tiers.map((tier) => {
+            {tierConfig.map((tier) => {
               const available = tier.totalSeats - tier.seatsSold;
               const soldOut = available <= 0;
               return (
                 <div className="tc-tier-row" key={tier.name}>
                   <div className="tc-tier-info">
                     <div className="tc-tier-name">
-                      {tier.name} · {formatMoney(toPaisa(tier.price))}
+                      {tier.name}
                     </div>
                     {soldOut ? (
                       <div className="tc-tier-meta sold-out">Sold out</div>
@@ -105,6 +117,36 @@ export default function TicketCounter({ tiers = INITIAL_TIERS }) {
                         {available} of {tier.totalSeats} left
                       </div>
                     )}
+                  </div>
+                  <div className="tc-tier-editor" aria-label={`${tier.name} inventory settings`}>
+                    <label>
+                      <span>Price</span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={tier.price}
+                        onChange={(e) => updateTier(tier.name, 'price', e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      <span>Total</span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={tier.totalSeats}
+                        onChange={(e) => updateTier(tier.name, 'totalSeats', e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      <span>Sold</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={tier.totalSeats}
+                        value={tier.seatsSold}
+                        onChange={(e) => updateTier(tier.name, 'seatsSold', e.target.value)}
+                      />
+                    </label>
                   </div>
                   <Stepper
                     value={selections[tier.name]}
