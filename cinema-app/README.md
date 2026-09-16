@@ -1,16 +1,30 @@
-# React + Vite
+# Bookmark web app
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This directory contains the React/Vite interface for the Bookmark cinema
+pricing demo.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```sh
+npm install
+npm run dev       # start the Vite development server
+npm run build     # create a production build in dist/
+npm run preview   # preview the production build
+npm run lint      # run Oxlint
+```
 
-## React Compiler
+The app is a client-side demo. It does not persist inventory or send SMS
+messages directly. The **Create bill** action validates the customer details,
+builds a short ticket message, and opens the device SMS composer with an
+`sms:` URL.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Source map
 
-## Expanding the Oxlint configuration
+- `src/App.jsx` — seat controls, offer controls, live receipt, customer form,
+  and bill/SMS handoff.
+- `src/priceEngine.js` — browser-compatible paisa calculations and receipt
+  formatting.
+- `src/App.css` — responsive dark cinema UI.
+- `src/main.jsx` — React entry point.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+See the repository [README](../README.md) for the complete project overview.
