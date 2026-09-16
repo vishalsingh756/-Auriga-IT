@@ -42,6 +42,8 @@ export default function TicketCounter({ tiers = INITIAL_TIERS }) {
   const [festival, setFestival] = useState({ enabled: true, amount: 50, min: 300 });
   const [member, setMember] = useState({ enabled: true, percent: 10, cap: 100 });
   const [fee, setFee] = useState(30);
+  const [customer, setCustomer] = useState({ name: '', mobile: '' });
+  const [billStatus, setBillStatus] = useState({ type: '', message: '' });
 
   const updateTier = (tierName, field, value) => {
     setTierConfig((current) => current.map((tier) => {
@@ -90,11 +92,48 @@ export default function TicketCounter({ tiers = INITIAL_TIERS }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(selections), JSON.stringify(festival), JSON.stringify(member), fee, tierConfig]);
 
+  const createBill = (event) => {
+    event.preventDefault();
+    const cleanName = customer.name.trim();
+    const cleanMobile = customer.mobile.replace(/\D/g, '');
+
+    if (!result) {
+      setBillStatus({ type: 'error', message: 'Select at least one seat before creating a bill.' });
+      return;
+    }
+    if (!cleanName) {
+      setBillStatus({ type: 'error', message: 'Enter the customer name to create the bill.' });
+      return;
+    }
+    if (cleanMobile.length !== 10) {
+      setBillStatus({ type: 'error', message: 'Enter a valid 10-digit mobile number.' });
+      return;
+    }
+
+    const ticketLines = result.lines.map((line) => `${line.tierName} x ${line.quantity}`).join(', ');
+    const message = `BOOKMARK ticket for ${cleanName}: ${ticketLines}. Total ${formatMoney(result.grandTotalPaisa)}.`;
+    window.location.href = `sms:+91${cleanMobile}?body=${encodeURIComponent(message)}`;
+    setBillStatus({ type: 'success', message: `Bill created. Ticket is ready to send to ${cleanMobile}.` });
+  };
+
   return (
     <div className="ticket-counter">
       <header className="tc-top">
-        <h1>🎬 Ticket Counter</h1>
-        <p>Pick seats, toggle offers, watch the bill update to the paisa.</p>
+        <div className="tc-brand">
+          <span className="tc-brand-mark">✦</span>
+          <span>BOOKMARK</span>
+        </div>
+        <div className="tc-top-row">
+          <div>
+            <p className="tc-eyebrow">SHOWTIME · COUNTER 01</p>
+            <h1>Build your perfect<br /><em>movie night.</em></h1>
+            <p className="tc-top-description">Choose your seats, unlock member perks, and get an instant, transparent total.</p>
+          </div>
+          <div className="tc-top-status">
+            <span className="tc-status-dot" />
+            <span>Live pricing</span>
+          </div>
+        </div>
       </header>
 
       <div className="tc-grid">
@@ -304,6 +343,47 @@ export default function TicketCounter({ tiers = INITIAL_TIERS }) {
               </>
             )}
           </section>
+          <form className="tc-card tc-customer-card" onSubmit={createBill}>
+            <h2 className="tc-section-title">SEND TICKET</h2>
+            <p className="tc-form-hint">Create the bill and open a pre-filled ticket message.</p>
+            <div className="tc-customer-fields">
+              <label className="tc-field">
+                <span>Customer name</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Aarav Sharma"
+                  value={customer.name}
+                  onChange={(event) => {
+                    setCustomer((current) => ({ ...current, name: event.target.value }));
+                    setBillStatus({ type: '', message: '' });
+                  }}
+                  autoComplete="name"
+                />
+              </label>
+              <label className="tc-field">
+                <span>Mobile number</span>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="10-digit number"
+                  value={customer.mobile}
+                  onChange={(event) => {
+                    setCustomer((current) => ({ ...current, mobile: event.target.value }));
+                    setBillStatus({ type: '', message: '' });
+                  }}
+                  autoComplete="tel"
+                />
+              </label>
+            </div>
+            <button className="tc-create-button" type="submit">
+              Create bill <span aria-hidden="true">↗</span>
+            </button>
+            {billStatus.message && (
+              <p className={`tc-bill-status ${billStatus.type}`} role="status">
+                {billStatus.message}
+              </p>
+            )}
+          </form>
         </div>
       </div>
     </div>

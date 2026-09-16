@@ -1,23 +1,5 @@
 :root {
-  --bg: #FBFAF7;
-  --panel: #FFFFFF;
-  --ink: #1C1B19;
-  --ink-soft: #6B6660;
-  --line: #E6E2DA;
-  --accent: #A9761F;
-  --danger: #A3352A;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #171614;
-    --panel: #1F1E1B;
-    --ink: #EDEAE4;
-    --ink-soft: #948E84;
-    --line: #34322D;
-    --accent: #D6A94E;
-    --danger: #E39184;
-  }
+  background: #0b0b10;
 }
 
 * {
@@ -34,9 +16,8 @@ body,
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--ink);
+  background: #0b0b10;
+  color: #f4f1ec;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
